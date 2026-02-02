@@ -11,6 +11,7 @@ PRIVACY FEATURES:
 import os
 import gc
 import tempfile
+from typing import Any
 import numpy as np
 from PIL import Image
 from io import BytesIO
@@ -19,20 +20,24 @@ import base64
 import torch
 import gradio as gr
 
+# ============================================================================
 # ZeroGPU support - only available on HuggingFace Spaces
 # For local development, we mock the decorator
+# ============================================================================
+ZERO_GPU_AVAILABLE = False
+
+def _passthrough_decorator(func: Any) -> Any:
+    """Passthrough decorator for local development."""
+    return func
+
+gpu_decorator: Any = _passthrough_decorator
+
 try:
-    import spaces
+    import spaces  # type: ignore
     ZERO_GPU_AVAILABLE = True
+    gpu_decorator = spaces.GPU(duration=60)
 except ImportError:
-    ZERO_GPU_AVAILABLE = False
-    # Mock decorator for local development
-    class spaces:
-        @staticmethod
-        def GPU(duration=60):
-            def decorator(func):
-                return func
-            return decorator
+    pass  # Use passthrough decorator defined above
 
 # Model imports
 from basicsr.archs.rrdbnet_arch import RRDBNet
@@ -104,7 +109,7 @@ def resize_if_needed(image: Image.Image) -> Image.Image:
     return image
 
 
-@spaces.GPU(duration=60)  # ZeroGPU: 60 second timeout
+@gpu_decorator  # ZeroGPU on HF Spaces, passthrough locally
 def upscale_image(
     image: Image.Image,
     model_name: str,
@@ -136,7 +141,7 @@ def upscale_image(
         if torch.cuda.is_available():
             device = "cuda"
             use_half = True
-        elif torch.backends.mps.is_available():
+        elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():  # type: ignore
             device = "mps"
             use_half = False  # MPS doesn't support FP16 well
         else:
@@ -171,7 +176,7 @@ def upscale_image(
         }
         pil_format, mime_type = format_map.get(output_format.lower(), ("PNG", "image/png"))
         
-        save_kwargs = {"format": pil_format}
+        save_kwargs: dict[str, Any] = {"format": pil_format}
         if pil_format == "JPEG":
             save_kwargs["quality"] = 95
         elif pil_format == "WEBP":
@@ -195,7 +200,8 @@ def upscale_image(
     
     except Exception as e:
         # PRIVACY: Don't expose internal errors
-        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         gc.collect()
         raise gr.Error("Processing failed. Please try a smaller image or different model.")
 
