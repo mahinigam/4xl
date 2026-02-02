@@ -1,0 +1,55 @@
+# =============================================================================
+# 4XL - Git Ignore
+# =============================================================================
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.pyo
+.pyd
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Environment
+.env
+.env.local
+.env.*.local
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+frontend/dist/
+*.log
+
+# Model weights (downloaded at runtime)
+*.pth
+*.pt
+*.onnx
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Coverage
+coverage/
+.coverage
+htmlcov/
+
+# Misc
+*.bak
+*.orig

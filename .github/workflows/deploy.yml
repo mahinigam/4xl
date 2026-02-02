@@ -1,0 +1,65 @@
+# =============================================================================
+# 4XL - GitHub Actions CI/CD
+# Automatically deploys to HuggingFace Spaces on push to main
+# =============================================================================
+
+name: Deploy to HuggingFace Spaces
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  # Deploy Backend (Gradio API)
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy Backend to HuggingFace
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cd backend
+          
+          # Configure git
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          
+          # Initialize fresh repo for HF
+          rm -rf .git
+          git init
+          git add .
+          git commit -m "Deploy backend - $(date +'%Y-%m-%d %H:%M:%S')"
+          
+          # Push to HuggingFace Space
+          git push --force https://mahinigam:$HF_TOKEN@huggingface.co/spaces/mahinigam/4xl-api main
+
+  # Deploy Frontend (React Static)
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy Frontend to HuggingFace
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cd frontend
+          
+          # Configure git
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          
+          # Initialize fresh repo for HF
+          rm -rf .git
+          git init
+          git add .
+          git commit -m "Deploy frontend - $(date +'%Y-%m-%d %H:%M:%S')"
+          
+          # Push to HuggingFace Space
+          git push --force https://mahinigam:$HF_TOKEN@huggingface.co/spaces/mahinigam/4xl main
