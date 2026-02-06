@@ -13,11 +13,29 @@ export function useUpscaler() {
     setResult(null)
 
     try {
-      // Convert image to base64 data URL
-      const base64Image = await fileToBase64(imageFile)
+      // Step 1: Upload the file to Gradio's upload endpoint
+      const formData = new FormData()
+      formData.append('files', imageFile)
       
-      // Gradio 4.x API format - use /call endpoint for named API
-      // First, queue the request
+      const uploadResponse = await fetch(`${API_URL}/upload?upload_id=${Date.now()}`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload image')
+      }
+
+      const uploadedFiles = await uploadResponse.json()
+      if (!uploadedFiles || uploadedFiles.length === 0) {
+        throw new Error('No file path returned from upload')
+      }
+
+      // Gradio returns array of file paths
+      const filePath = uploadedFiles[0]
+
+      // Step 2: Call the API with the uploaded file reference
+      // Gradio 4.x expects image as { path: "...", ... } object
       const queueResponse = await fetch(`${API_URL}/call/upscale`, {
         method: 'POST',
         headers: {
@@ -25,9 +43,9 @@ export function useUpscaler() {
         },
         body: JSON.stringify({
           data: [
-            base64Image,      // Image as base64 data URL
-            modelName,        // Model selection
-            outputFormat,     // Output format
+            { path: filePath },  // Image as FileData object
+            modelName,           // Model selection
+            outputFormat,        // Output format
           ],
         }),
       })
@@ -44,7 +62,7 @@ export function useUpscaler() {
         throw new Error('No event ID returned from API')
       }
 
-      // Poll for result using SSE endpoint
+      // Step 3: Poll for result using SSE endpoint
       const resultResponse = await fetch(`${API_URL}/call/upscale/${eventId}`)
       
       if (!resultResponse.ok) {
@@ -96,14 +114,4 @@ export function useUpscaler() {
     error,
     reset,
   }
-}
-
-// Helper: Convert File to base64
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
 }

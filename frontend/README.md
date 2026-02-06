@@ -17,8 +17,9 @@ Privacy-first image upscaling powered by Real-ESRGAN AI.
 
 - **4× Upscaling** - Enhance images to 4x their original resolution
 - **Privacy-First** - Your images are never stored or logged
-- **Multiple Models** - General, Fast, and Anime-optimized options
+- **Multiple Models** - General (best quality), Fast, and Anime-optimized
 - **Multiple Formats** - Export as PNG, JPEG, or WebP
+- **Optimized Performance** - Model caching, smart tiling, inference optimizations
 
 ## 🔒 Privacy
 

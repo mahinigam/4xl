@@ -86,6 +86,57 @@ os.makedirs(WEIGHTS_DIR, exist_ok=True)
 # Maximum input resolution (prevents OOM on ZeroGPU's 16GB VRAM)
 MAX_RESOLUTION = 1024  # pixels (longest side)
 
+# ============================================================================
+# MODEL CACHE - Lazy loading, reuse between requests
+# ============================================================================
+_model_cache: dict[str, RealESRGANer] = {}
+_current_device: str | None = None
+
+
+def get_upsampler(model_name: str) -> RealESRGANer:
+    """Get or create cached upsampler for the given model."""
+    global _model_cache, _current_device
+    
+    # Detect device
+    if torch.cuda.is_available():
+        device = "cuda"
+        use_half = True
+    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        device = "mps"
+        use_half = False
+    else:
+        device = "cpu"
+        use_half = False
+    
+    # If device changed, clear cache (e.g., ZeroGPU reassignment)
+    if _current_device is not None and _current_device != device:
+        _model_cache.clear()
+    _current_device = device
+    
+    # Return cached model if available
+    if model_name in _model_cache:
+        return _model_cache[model_name]
+    
+    # Load model (first time only)
+    config = MODEL_CONFIGS[model_name]
+    weight_path = download_weights(model_name)
+    model = config["model"]()
+    
+    upsampler = RealESRGANer(
+        scale=config["scale"],
+        model_path=weight_path,
+        model=model,
+        tile=512,      # Smart tiling for memory efficiency
+        tile_pad=32,   # Generous padding for seamless tile joins
+        pre_pad=10,    # Prevents edge artifacts
+        half=use_half,
+        device=device,
+    )
+    
+    # Cache for reuse
+    _model_cache[model_name] = upsampler
+    return upsampler
+
 
 def download_weights(model_name: str) -> str:
     """Download model weights if not cached."""
@@ -133,35 +184,12 @@ def upscale_image(
             img_np = np.stack([img_np] * 3, axis=-1)
         img_bgr = img_np[:, :, ::-1]  # RGB to BGR
         
-        # Load model
-        config = MODEL_CONFIGS[model_name]
-        weight_path = download_weights(model_name)
+        # Get cached model (lazy loading)
+        upsampler = get_upsampler(model_name)
         
-        # Detect device - CUDA for HF Spaces, MPS for Mac, CPU fallback
-        if torch.cuda.is_available():
-            device = "cuda"
-            use_half = True
-        elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():  # type: ignore
-            device = "mps"
-            use_half = False  # MPS doesn't support FP16 well
-        else:
-            device = "cpu"
-            use_half = False
-        
-        model = config["model"]()
-        upsampler = RealESRGANer(
-            scale=config["scale"],
-            model_path=weight_path,
-            model=model,
-            tile=0,  # No tiling for smaller images
-            tile_pad=10,
-            pre_pad=0,
-            half=use_half,
-            device=device,
-        )
-        
-        # Upscale (fixed 4x)
-        output_bgr, _ = upsampler.enhance(img_bgr, outscale=4)
+        # Upscale (fixed 4x) with inference optimization
+        with torch.inference_mode():
+            output_bgr, _ = upsampler.enhance(img_bgr, outscale=4)
         
         # Convert BGR back to RGB
         output_rgb = output_bgr[:, :, ::-1]
@@ -186,14 +214,10 @@ def upscale_image(
         img_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
         
         # ====================================================================
-        # PRIVACY: Explicit memory cleanup
+        # PRIVACY: Cleanup intermediate data (model stays cached for perf)
         # ====================================================================
-        del upsampler, model, img_np, img_bgr, output_bgr, output_rgb, output_pil
-        del buffer
-        
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()  # PRIVACY: Purge VRAM
-        gc.collect()              # PRIVACY: Purge RAM
+        del img_np, img_bgr, output_bgr, output_rgb, output_pil, buffer
+        gc.collect()  # PRIVACY: Purge RAM
         # ====================================================================
         
         return f"data:{mime_type};base64,{img_base64}"

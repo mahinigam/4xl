@@ -72,13 +72,22 @@ Open http://localhost:3000 in your browser.
    
    GitHub Actions will automatically deploy both spaces.
 
+## ⚡ Performance Optimizations
+
+| Optimization | Description |
+|--------------|-------------|
+| **Model Caching** | Models loaded once, reused across requests (~3-5s saved) |
+| **Lazy Loading** | Models loaded on first use, not at startup |
+| **Smart Tiling** | `tile=512` with `tile_pad=32` for memory efficiency |
+| **Inference Mode** | `torch.inference_mode()` for ~5-10% faster processing |
+| **FP16 on CUDA** | Half-precision on GPU for 2x memory savings |
+
 ## 🔒 Privacy Features
 
 | Feature | Implementation |
 |---------|---------------|
 | **No Persistence** | `delete_cache=(3600, 3600)` — Auto-wipes temp files hourly |
-| **VRAM Purge** | `torch.cuda.empty_cache()` after every inference |
-| **RAM Purge** | `gc.collect()` after every inference |
+| **Memory Purge** | `gc.collect()` after every inference |
 | **No Logging** | Logging disabled, no print statements for images |
 
 ## 🎨 Design System

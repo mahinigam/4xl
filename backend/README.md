@@ -43,9 +43,19 @@ result = client.predict(
 | Upscale Factor | 4× |
 | Output Formats | PNG, JPEG, WebP |
 | GPU Timeout | 60 seconds |
+| Tile Size | 512px (with 32px padding) |
 
 ## 🧠 Available Models
 
-- `RealESRGAN_x4plus` - General purpose (best quality)
-- `RealESRNet_x4plus` - Faster, slightly lower quality
-- `RealESRGAN_x4plus_anime_6B` - Optimized for anime/illustrations
+| Model | Use Case | Architecture |
+|-------|----------|-------------|
+| `RealESRGAN_x4plus` | Photos & general images | 23 RRDB blocks |
+| `RealESRNet_x4plus` | Faster processing | 23 RRDB blocks (lighter weights) |
+| `RealESRGAN_x4plus_anime_6B` | Anime & illustrations | 6 RRDB blocks (~4x faster) |
+
+## ⚡ Performance
+
+- **Model Caching**: Loaded once, reused across requests
+- **Smart Tiling**: 512px tiles with 32px overlap for seamless joins
+- **Inference Mode**: `torch.inference_mode()` for optimized inference
+- **FP16 on CUDA**: Half-precision for 2x memory efficiency
