@@ -75,6 +75,7 @@ function App() {
               isLoading={isLoading}
               error={error}
               format={format}
+              originalPreview={inputPreview}
             />
           </GlassPanel>
         </div>

@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react'
+import ImageCompare from './ImageCompare'
 
-function OutputPanel({ result, isLoading, error, format }) {
+function OutputPanel({ result, isLoading, error, format, originalPreview }) {
   
   const handleDownload = useCallback(() => {
     if (!result) return
@@ -45,7 +46,11 @@ function OutputPanel({ result, isLoading, error, format }) {
     return (
       <div className="output-container has-result">
         <div className="result-image-container">
-          <img src={result} alt="Upscaled result" className="result-image" />
+          {originalPreview ? (
+            <ImageCompare originalSrc={originalPreview} resultSrc={result} />
+          ) : (
+            <img src={result} alt="Upscaled result" className="result-image" />
+          )}
         </div>
         <button className="download-button" onClick={handleDownload}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
