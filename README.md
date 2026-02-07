@@ -15,7 +15,7 @@
 - **Privacy-First** — No logging, no storage, automatic memory purge
 - **Three Models** — General (best quality), Fast, and Anime-optimized
 - **Multiple Formats** — Export as PNG, JPEG, or WebP
-- **Free GPU** — Powered by HuggingFace ZeroGPU
+- **Free GPU** — Optional deployment on HuggingFace ZeroGPU
 
 ## 🏗️ Architecture
 
@@ -50,6 +50,7 @@ python app.py
 # Terminal 2 - Frontend
 cd frontend
 npm install
+cp .env.example .env
 npm run dev
 ```
 
@@ -92,13 +93,12 @@ Open http://localhost:3000 in your browser.
 
 ## 🎨 Design System
 
-**Cinematic Systems** aesthetic:
-- Deep obsidian background (`#0D0D0F`)
-- Glassmorphism panels (20px blur)
-- Navy blue ambient glows (0.15 intensity)
-- Space Grotesk headings + Inter body text
-- Liquid-smooth cubic-bezier transitions
-- Analog film grain texture overlay
+**Peacock Watercolor Glass** aesthetic:
+- Peacock palette (teal, emerald, indigo, gold)
+- Watercolor wash layers with plume watermark (7% opacity)
+- Glassmorphism panels with animated gradient borders
+- Sora headings + Manrope body text
+- Micro‑refraction noise + slow sheen drift
 
 ## 📁 Project Structure
 
@@ -139,5 +139,5 @@ MIT License — See [LICENSE](LICENSE) for details.
 ---
 
 <p align="center">
-  Built with 🖤 by <a href="https://github.com/mahinigam">@mahinigam</a>
+  Built by <a href="https://github.com/mahinigam">@mahinigam</a>
 </p>
