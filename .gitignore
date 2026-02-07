@@ -50,6 +50,10 @@ coverage/
 .coverage
 htmlcov/
 
+# HF Space clones (deploy targets, not source)
+4xl-api/
+4xl-frontend/
+
 # Misc
 *.bak
 *.orig
