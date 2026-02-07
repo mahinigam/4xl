@@ -16,6 +16,13 @@ export default defineConfig({
         drop_debugger: true,
       },
     },
+    // Increase chunk size warning for ONNX runtime (~2MB WASM)
+    chunkSizeWarningLimit: 3000,
+  },
+
+  // Ensure WASM files are handled correctly
+  optimizeDeps: {
+    exclude: ['onnxruntime-web'],
   },
   
   // Dev server configuration

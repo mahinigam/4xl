@@ -13,7 +13,7 @@ function App() {
   const [model, setModel] = useState('RealESRGAN_x4plus')
   const [format, setFormat] = useState('png')
   
-  const { upscale, result, isLoading, error, reset } = useUpscaler()
+  const { upscale, result, isLoading, error, reset, mode, toggleMode, progress } = useUpscaler()
 
   const handleImageSelect = useCallback((file) => {
     setInputImage(file)
@@ -82,6 +82,8 @@ function App() {
               error={error}
               format={format}
               originalPreview={inputPreview}
+              progress={progress}
+              mode={mode}
             />
           </GlassPanel>
         </div>
@@ -91,6 +93,22 @@ function App() {
           <div className="controls-grid">
             <ModelSelector value={model} onChange={setModel} disabled={isLoading} />
             <FormatSelector value={format} onChange={setFormat} disabled={isLoading} />
+            <div className="selector-group">
+              <label className="selector-label">Processing</label>
+              <button
+                className={`mode-toggle ${mode}`}
+                onClick={toggleMode}
+                disabled={isLoading}
+                title={mode === 'local'
+                  ? 'Running on your device (WebGPU/WASM)'
+                  : 'Running on remote server'}
+              >
+                <span className="mode-indicator" />
+                <span className="mode-label">
+                  {mode === 'local' ? 'Your Device' : 'Server'}
+                </span>
+              </button>
+            </div>
           </div>
           
           <div className="actions">

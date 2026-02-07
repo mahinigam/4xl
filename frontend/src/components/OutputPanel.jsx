@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react'
 import ImageCompare from './ImageCompare'
 
-function OutputPanel({ result, isLoading, error, format, originalPreview }) {
+function OutputPanel({ result, isLoading, error, format, originalPreview, progress, mode }) {
   
   const handleDownload = useCallback(() => {
     if (!result) return
@@ -15,12 +15,26 @@ function OutputPanel({ result, isLoading, error, format, originalPreview }) {
   }, [result, format])
 
   if (isLoading) {
+    const progressPct = progress?.progress != null ? Math.round(progress.progress * 100) : null
+    const isLocal = mode === 'local'
+
     return (
       <div className="output-container loading">
         <div className="loader">
           <div className="loader-ring" />
-          <p className="loader-text">Processing with GPU...</p>
-          <p className="loader-subtext">This may take up to 60 seconds</p>
+          <p className="loader-text">
+            {progress?.message || (isLocal ? 'Processing on your device...' : 'Processing with server...')}
+          </p>
+          {progressPct != null && (
+            <div className="progress-bar-container">
+              <div className="progress-bar" style={{ width: `${progressPct}%` }} />
+            </div>
+          )}
+          <p className="loader-subtext">
+            {isLocal
+              ? 'Running locally — your image never leaves this device'
+              : 'This may take up to 60 seconds'}
+          </p>
         </div>
       </div>
     )
