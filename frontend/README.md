@@ -9,7 +9,7 @@ license: mit
 app_port: 7860
 ---
 
-# 4XL — Neural Image Upscaler
+# 4XL
 
 Privacy-first image upscaling powered by Real-ESRGAN AI.
 
