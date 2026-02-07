@@ -279,12 +279,29 @@ with gr.Blocks(
 # Launch configuration
 if __name__ == "__main__":
     import os
-    # Use share=True for local dev if localhost is not accessible
     is_hf_space = os.environ.get("SPACE_ID") is not None
-    
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-        show_api=True,
-        share=not is_hf_space,  # Share locally, not on HF Spaces
-    )
+
+    if is_hf_space:
+        # HF Spaces: mount on FastAPI with CORS for cross-origin frontend
+        import uvicorn
+        from fastapi import FastAPI
+        from fastapi.middleware.cors import CORSMiddleware
+
+        app = FastAPI()
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+        app = gr.mount_gradio_app(app, demo, path="/")
+        uvicorn.run(app, host="0.0.0.0", port=7860)
+    else:
+        # Local dev: use Gradio's built-in server with share link
+        demo.launch(
+            server_name="0.0.0.0",
+            server_port=7860,
+            show_api=True,
+            share=True,
+        )
