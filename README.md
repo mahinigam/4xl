@@ -1,13 +1,16 @@
 # 4XL — Privacy-First Neural Image Upscaler
 
 <p align="center">
+  <a href="https://huggingface.co/spaces/mahinigam/4xl"><img src="https://img.shields.io/badge/🤗%20Live%20Demo-4XL-yellow?style=flat-square" alt="Live Demo" /></a>
   <img src="https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react" alt="React" />
-  <img src="https://img.shields.io/badge/Gradio-4.44-FF6F00?style=flat-square" alt="Gradio" />
+  <img src="https://img.shields.io/badge/Gradio-5.9.1-FF6F00?style=flat-square" alt="Gradio" />
   <img src="https://img.shields.io/badge/Real--ESRGAN-Powered-green?style=flat-square" alt="Real-ESRGAN" />
   <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="MIT License" />
 </p>
 
 4× neural image upscaling with a **privacy-first** approach. Your images are processed in memory and never stored.
+
+> **Live:** [mahinigam-4xl.hf.space](https://mahinigam-4xl.hf.space) (frontend) · [mahinigam-4xl-api.hf.space](https://mahinigam-4xl-api.hf.space) (backend API)
 
 ## ✨ Features
 
@@ -15,18 +18,21 @@
 - **Privacy-First** — No logging, no storage, automatic memory purge
 - **Three Models** — General (best quality), Fast, and Anime-optimized
 - **Multiple Formats** — Export as PNG, JPEG, or WebP
-- **Free GPU** — Optional deployment on HuggingFace ZeroGPU
+- **Free Hosting** — Deployed on HuggingFace Spaces (CPU Basic, free tier)
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────┐     HTTP     ┌─────────────────────┐
-│   Frontend Space    │ ──────────►  │   Backend Space     │
-│   (React + Vite)    │              │   (Gradio + GPU)    │
-│                     │  ◄──────────  │                     │
-│   Static Docker     │   Base64     │   ZeroGPU (Free)    │
-└─────────────────────┘              └─────────────────────┘
+┌──────────────────────┐  nginx proxy  ┌──────────────────────┐
+│   Frontend Space     │   /api/ ──►   │   Backend Space      │
+│   (React + Vite)     │  /gradio_api/ │   (Gradio 5.9.1)     │
+│                      │  ◄──────────  │                      │
+│   Docker + nginx     │   Base64 SSE  │   Real-ESRGAN (CPU)  │
+│   mahinigam/4xl      │               │   mahinigam/4xl-api  │
+└──────────────────────┘               └──────────────────────┘
 ```
+
+The frontend proxies all `/api/*` requests through nginx to the backend's `/gradio_api/*` endpoints — no CORS needed.
 
 ## 🚀 Quick Start
 
@@ -42,36 +48,40 @@ docker-compose up
 
 # Option 2: Run separately
 
-# Terminal 1 - Backend
+# Terminal 1 - Backend (requires Python 3.10)
 cd backend
 pip install -r requirements.txt
 python app.py
+# → Gradio API running at http://localhost:7860
 
 # Terminal 2 - Frontend
 cd frontend
 npm install
 cp .env.example .env
+# .env should contain: VITE_API_URL=http://localhost:7860/gradio_api
 npm run dev
+# → Frontend running at http://localhost:3000
 ```
 
-Open http://localhost:3000 in your browser.
+### Deploy to HuggingFace Spaces
 
-### Deploy to HuggingFace
+Both Spaces are deployed via **direct git push** to their HF repos:
 
-1. **Create two HuggingFace Spaces:**
-   - `mahinigam/4xl-api` (SDK: Gradio, Hardware: ZeroGPU)
-   - `mahinigam/4xl` (SDK: Docker, Hardware: CPU Basic)
-
-2. **Set GitHub Secret:**
-   - Go to GitHub repo → Settings → Secrets → Actions
-   - Add `HF_TOKEN` with your HuggingFace write token
-
-3. **Push to main branch:**
+1. **Backend** (`mahinigam/4xl-api` — SDK: Gradio, Hardware: CPU Basic):
    ```bash
-   git push origin main
+   cd 4xl-api
+   git remote add hf https://huggingface.co/spaces/mahinigam/4xl-api
+   git push hf main
    ```
-   
-   GitHub Actions will automatically deploy both spaces.
+
+2. **Frontend** (`mahinigam/4xl` — SDK: Docker, Hardware: CPU Basic):
+   ```bash
+   cd 4xl-frontend
+   git remote add hf https://huggingface.co/spaces/mahinigam/4xl
+   git push hf main
+   ```
+
+> **Note:** The CI/CD workflow in `.github/workflows/deploy.yml` can also deploy via `HF_TOKEN` secret on push to main.
 
 ## ⚡ Performance Optimizations
 
@@ -104,23 +114,41 @@ Open http://localhost:3000 in your browser.
 
 ```
 4xl/
-├── backend/                 # Gradio API (HF Space: 4xl-api)
-│   ├── app.py              # Real-ESRGAN inference
+├── backend/                 # Gradio API source
+│   ├── app.py              # Real-ESRGAN inference + Gradio 5.9.1
 │   ├── requirements.txt
 │   └── README.md           # HF Space config
 │
-├── frontend/               # React App (HF Space: 4xl)
+├── frontend/               # React App source
 │   ├── src/
-│   │   ├── App.jsx
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   └── styles/
-│   ├── Dockerfile
+│   │   ├── App.jsx         # Watercolor/glass layout
+│   │   ├── components/     # UI components
+│   │   ├── hooks/          # useUpscaler (Gradio API client)
+│   │   └── styles/         # Peacock theme CSS
+│   ├── Dockerfile          # Multi-stage: node → nginx
+│   ├── nginx.conf          # SPA routing + /api/ reverse proxy
 │   └── README.md           # HF Space config
 │
+├── 4xl-api/                # HF Space clone (backend) — not in main repo
+├── 4xl-frontend/           # HF Space clone (frontend) — not in main repo
+│
 ├── docker-compose.yml      # Local development
-└── .github/workflows/      # CI/CD
+├── .github/workflows/      # CI/CD (deploy.yml)
+└── README.md
 ```
+
+## 🔧 Tech Stack
+
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| Frontend | React + Vite | 18.3 |
+| Styling | Tailwind CSS + custom CSS | 3.4 |
+| Backend | Gradio | 5.9.1 |
+| AI Model | Real-ESRGAN | latest |
+| PyTorch | torch (CPU) | 2.0.1 |
+| Python | | 3.10.13 |
+| Proxy | nginx | alpine |
+| Hosting | HuggingFace Spaces | CPU Basic (free) |
 
 ## 📊 Specifications
 
@@ -129,8 +157,10 @@ Open http://localhost:3000 in your browser.
 | Max Input Resolution | 1024×1024px |
 | Upscale Factor | 4× (fixed) |
 | Output Formats | PNG, JPEG, WebP |
-| GPU Timeout | 60 seconds |
+| Processing Timeout | 60 seconds |
 | Models | RealESRGAN_x4plus, RealESRNet_x4plus, RealESRGAN_x4plus_anime_6B |
+| API Prefix | `/gradio_api/` (Gradio 5.x) |
+| Frontend Proxy | `/api/*` → `/gradio_api/*` via nginx |
 
 ## 📄 License
 
