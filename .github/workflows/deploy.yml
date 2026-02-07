@@ -9,57 +9,87 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
   # Deploy Backend (Gradio API)
   deploy-backend:
     runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      contains(join(github.event.commits.*.modified, ','), 'backend/') ||
+      contains(join(github.event.commits.*.added, ','), 'backend/')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Deploy Backend to HuggingFace
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          cd backend
+          # Clone existing HF Space (preserves history)
+          git clone https://mahinigam:$HF_TOKEN@huggingface.co/spaces/mahinigam/4xl-api /tmp/hf-backend
           
-          # Configure git
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
+          # Sync backend/ files → HF Space (excluding .git)
+          rsync -av --delete --exclude '.git' backend/ /tmp/hf-backend/
           
-          # Initialize fresh repo for HF
-          rm -rf .git
-          git init
-          git add .
-          git commit -m "Deploy backend - $(date +'%Y-%m-%d %H:%M:%S')"
+          cd /tmp/hf-backend
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
           
-          # Push to HuggingFace Space
-          git push --force https://mahinigam:$HF_TOKEN@huggingface.co/spaces/mahinigam/4xl-api main
+          # Only push if there are actual changes
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes to deploy for backend"
+          else
+            git add -A
+            git commit -m "deploy: backend from GitHub @ $(git -C $GITHUB_WORKSPACE rev-parse --short HEAD)"
+            git push
+            echo "✅ Backend deployed to HuggingFace"
+          fi
 
-  # Deploy Frontend (React Static)
+  # Deploy Frontend (React + Docker)
   deploy-frontend:
     runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      contains(join(github.event.commits.*.modified, ','), 'frontend/') ||
+      contains(join(github.event.commits.*.added, ','), 'frontend/')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Deploy Frontend to HuggingFace
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          cd frontend
+          # Clone existing HF Space (preserves history)
+          git clone https://mahinigam:$HF_TOKEN@huggingface.co/spaces/mahinigam/4xl /tmp/hf-frontend
           
-          # Configure git
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
+          # Sync frontend/ files → HF Space (excluding .git, node_modules, dist, .env)
+          rsync -av --delete \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude 'dist' \
+            --exclude '.env' \
+            frontend/ /tmp/hf-frontend/
           
-          # Initialize fresh repo for HF
-          rm -rf .git
-          git init
-          git add .
-          git commit -m "Deploy frontend - $(date +'%Y-%m-%d %H:%M:%S')"
+          cd /tmp/hf-frontend
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
           
-          # Push to HuggingFace Space
-          git push --force https://mahinigam:$HF_TOKEN@huggingface.co/spaces/mahinigam/4xl main
+          # Only push if there are actual changes
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes to deploy for frontend"
+          else
+            git add -A
+            git commit -m "deploy: frontend from GitHub @ $(git -C $GITHUB_WORKSPACE rev-parse --short HEAD)"
+            git push
+            echo "✅ Frontend deployed to HuggingFace"
+          fi

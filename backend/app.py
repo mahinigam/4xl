@@ -17,6 +17,22 @@ from PIL import Image
 from io import BytesIO
 import base64
 
+# ============================================================================
+# PATCH: Fix gradio_client boolean schema bug (pydantic 2.11+ compat)
+# Must run BEFORE importing gradio
+# See: https://github.com/gradio-app/gradio/issues/11722
+# ============================================================================
+try:
+    import gradio_client.utils as _gc_utils
+    _original_get_type = _gc_utils.get_type
+    def _patched_get_type(schema):
+        if isinstance(schema, bool):
+            return "boolean"
+        return _original_get_type(schema)
+    _gc_utils.get_type = _patched_get_type
+except Exception:
+    pass
+
 import torch
 import gradio as gr
 
@@ -278,30 +294,10 @@ with gr.Blocks(
 
 # Launch configuration
 if __name__ == "__main__":
-    import os
-    is_hf_space = os.environ.get("SPACE_ID") is not None
-
-    if is_hf_space:
-        # HF Spaces: mount on FastAPI with CORS for cross-origin frontend
-        import uvicorn
-        from fastapi import FastAPI
-        from fastapi.middleware.cors import CORSMiddleware
-
-        app = FastAPI()
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
-        app = gr.mount_gradio_app(app, demo, path="/")
-        uvicorn.run(app, host="0.0.0.0", port=7860)
-    else:
-        # Local dev: use Gradio's built-in server with share link
-        demo.launch(
-            server_name="0.0.0.0",
-            server_port=7860,
-            show_api=True,
-            share=True,
-        )
+    # Use Gradio's native launch (preserves API endpoints)
+    # CORS is handled by nginx reverse proxy on frontend
+    demo.launch(
+        server_name="0.0.0.0",
+        server_port=7860,
+        show_api=True,
+    )
