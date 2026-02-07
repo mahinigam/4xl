@@ -5,34 +5,57 @@
   <img src="https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/Gradio-5.9.1-FF6F00?style=flat-square" alt="Gradio" />
   <img src="https://img.shields.io/badge/Real--ESRGAN-Powered-green?style=flat-square" alt="Real-ESRGAN" />
+  <img src="https://img.shields.io/badge/ONNX%20Runtime-Web%201.21-purple?style=flat-square" alt="ONNX Runtime Web" />
   <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="MIT License" />
 </p>
 
-4× neural image upscaling with a **privacy-first** approach. Your images are processed in memory and never stored.
+4× neural image upscaling with a **privacy-first**, **hybrid inference** approach. Runs directly on your device via WebGPU/WASM when possible, with automatic server fallback. Your images never leave your browser in local mode.
 
 > **Live:** [mahinigam-4xl.hf.space](https://mahinigam-4xl.hf.space) (frontend) · [mahinigam-4xl-api.hf.space](https://mahinigam-4xl-api.hf.space) (backend API)
 
 ## Features
 
+- **Hybrid Inference** — Runs on your device (WebGPU or WASM) with automatic server fallback
 - **4× Upscaling** — Enhance images to 4x their original resolution using Real-ESRGAN
-- **Privacy-First** — No logging, no storage, automatic memory purge
+- **Privacy-First** — In local mode, images never leave your browser. Server mode auto-purges files hourly
+- **Device Detection** — Auto-detects WebGPU (GPU badge), WASM (CPU badge), or server (Cloud badge)
 - **Three Models** — General (best quality), Fast, and Anime-optimized
 - **Multiple Formats** — Export as PNG, JPEG, or WebP
+- **Model Caching** — ONNX models downloaded once and cached in the browser via Cache API
 - **Free Hosting** — Deployed on HuggingFace Spaces (CPU Basic, free tier)
 
 ## Architecture
 
 ```
-┌──────────────────────┐  nginx proxy  ┌──────────────────────┐
-│   Frontend Space     │   /api/ ──►   │   Backend Space      │
-│   (React + Vite)     │  /gradio_api/ │   (Gradio 5.9.1)     │
-│                      │  ◄──────────  │                      │
-│   Docker + nginx     │   Base64 SSE  │   Real-ESRGAN (CPU)  │
-│   mahinigam/4xl      │               │   mahinigam/4xl-api  │
-└──────────────────────┘               └──────────────────────┘
+                    User's Browser
+         ┌─────────────────────────────────┐
+         │  React Frontend                 │
+         │  ┌───────────┐  ┌────────────┐  │
+         │  │ Mode      │  │ Provider   │  │
+         │  │ Toggle    │  │ Detection  │  │
+         │  └─────┬─────┘  │ GPU / CPU  │  │
+         │        │        │ / Cloud    │  │
+         │        ▼        └────────────┘  │
+         │  ┌───────────────────────┐      │
+         │  │  useUpscaler (hybrid) │      │
+         │  └──┬──────────────┬─────┘      │
+         │     │              │            │
+         │  LOCAL           SERVER         │
+         │  ┌──────┐      ┌──────┐         │
+         │  │ ONNX │      │ Fetch│─────────┼──► nginx proxy ──► Backend Space
+         │  │ Runt.│      │ API  │         │    /api/ ──►       (Gradio 5.9.1)
+         │  │ Web  │      └──────┘         │    /gradio_api/    Real-ESRGAN CPU
+         │  └──┬───┘                       │
+         │     │ WebGPU or WASM            │
+         └─────┼───────────────────────────┘
+               │ fetches model once
+               ▼
+         HF Space /models/*.onnx
 ```
 
-The frontend proxies all `/api/*` requests through nginx to the backend's `/gradio_api/*` endpoints — no CORS needed.
+**Local path:** Image tiles through ONNX Runtime Web (WebGPU/WASM) entirely in-browser — zero server traffic after model cache.
+
+**Server path:** nginx proxies `/api/*` to the backend's `/gradio_api/*` — Gradio queues the job, Real-ESRGAN processes on CPU, result returned via SSE.
 
 ## Quick Start
 
@@ -87,11 +110,13 @@ Both Spaces are deployed via **direct git push** to their HF repos:
 
 | Optimization | Description |
 |--------------|-------------|
-| **Model Caching** | Models loaded once, reused across requests (~3-5s saved) |
+| **Browser Model Cache** | ONNX models cached via Cache API — one-time ~64MB download |
+| **WebGPU Acceleration** | Hardware GPU inference in supported browsers (Chrome 113+, Edge 113+) |
+| **Tiled Inference** | 192px input tiles with 16px overlap prevent GPU OOM on large images |
+| **Auto Fallback** | Local failure seamlessly retries via server — user sees no error |
+| **Server Model Caching** | PyTorch models loaded once, reused across requests |
 | **Lazy Loading** | Models loaded on first use, not at startup |
-| **Smart Tiling** | `tile=512` with `tile_pad=32` for memory efficiency |
-| **Inference Mode** | `torch.inference_mode()` for ~5-10% faster processing |
-| **FP16 on CUDA** | Half-precision on GPU for 2x memory savings |
+| **Inference Mode** | `torch.inference_mode()` for ~5-10% faster server processing |
 
 ## Privacy Features
 
@@ -121,16 +146,19 @@ Both Spaces are deployed via **direct git push** to their HF repos:
 │
 ├── frontend/               # React App source
 │   ├── src/
-│   │   ├── App.jsx         # Watercolor/glass layout
-│   │   ├── components/     # UI components
-│   │   ├── hooks/          # useUpscaler (Gradio API client)
-│   │   └── styles/         # Peacock theme CSS
+│   │   ├── App.jsx         # Layout + mode toggle + provider badge
+│   │   ├── components/     # UI components (OutputPanel w/ progress bar)
+│   │   ├── hooks/
+│   │   │   ├── useUpscaler.js    # Hybrid hook (local-first, server fallback)
+│   │   │   └── localInference.js # ONNX Runtime Web engine (WebGPU/WASM, tiling)
+│   │   └── styles/         # Peacock Watercolor Glass theme
 │   ├── Dockerfile          # Multi-stage: node → nginx
-│   ├── nginx.conf          # SPA routing + /api/ reverse proxy
+│   ├── nginx.conf          # SPA routing + /api/ proxy + WASM caching
 │   └── README.md           # HF Space config
 │
-├── 4xl-api/                # HF Space clone (backend) — not in main repo
-├── 4xl-frontend/           # HF Space clone (frontend) — not in main repo
+├── scripts/
+│   ├── export_onnx.py      # Export PyTorch Real-ESRGAN models to ONNX
+│   └── test_e2e.py         # 11-test E2E suite for deployed stack
 │
 ├── docker-compose.yml      # Local development
 ├── .github/workflows/      # CI/CD (deploy.yml)
@@ -141,10 +169,12 @@ Both Spaces are deployed via **direct git push** to their HF repos:
 
 | Layer | Technology | Version |
 |-------|-----------|---------|
-| Frontend | React + Vite | 18.3 |
+| Frontend | React + Vite | 18.3 + 5.4 |
+| Local Inference | ONNX Runtime Web | 1.21.0 |
+| Execution | WebGPU (preferred) / WASM (fallback) | — |
 | Styling | Tailwind CSS + custom CSS | 3.4 |
 | Backend | Gradio | 5.9.1 |
-| AI Model | Real-ESRGAN | latest |
+| AI Model | Real-ESRGAN (ONNX + PyTorch) | latest |
 | PyTorch | torch (CPU) | 2.0.1 |
 | Python | | 3.10.13 |
 | Proxy | nginx | alpine |
@@ -158,7 +188,10 @@ Both Spaces are deployed via **direct git push** to their HF repos:
 | Upscale Factor | 4× (fixed) |
 | Output Formats | PNG, JPEG, WebP |
 | Processing Timeout | 60 seconds |
-| Models | RealESRGAN_x4plus, RealESRNet_x4plus, RealESRGAN_x4plus_anime_6B |
+| Models | RealESRGAN_x4plus (64MB), RealESRNet_x4plus (64MB), anime_6B (17MB) |
+| ONNX Opset | 17 (dynamic axes) |
+| Local Tile Size | 192px input / 768px output, 16px overlap |
+| WASM Threading | Single-threaded (no SharedArrayBuffer in HF iframe) |
 | API Prefix | `/gradio_api/` (Gradio 5.x) |
 | Frontend Proxy | `/api/*` → `/gradio_api/*` via nginx |
 
