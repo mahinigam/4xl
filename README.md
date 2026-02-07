@@ -1,7 +1,7 @@
 # 4XL — Privacy-First Neural Image Upscaler
 
 <p align="center">
-  <a href="https://huggingface.co/spaces/mahinigam/4xl"><img src="https://img.shields.io/badge/🤗%20Live%20Demo-4XL-yellow?style=flat-square" alt="Live Demo" /></a>
+  <a href="https://huggingface.co/spaces/mahinigam/4xl"><img src="https://img.shields.io/badge/Live%20Demo-4XL-yellow?style=flat-square" alt="Live Demo" /></a>
   <img src="https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/Gradio-5.9.1-FF6F00?style=flat-square" alt="Gradio" />
   <img src="https://img.shields.io/badge/Real--ESRGAN-Powered-green?style=flat-square" alt="Real-ESRGAN" />
@@ -12,7 +12,7 @@
 
 > **Live:** [mahinigam-4xl.hf.space](https://mahinigam-4xl.hf.space) (frontend) · [mahinigam-4xl-api.hf.space](https://mahinigam-4xl-api.hf.space) (backend API)
 
-## ✨ Features
+## Features
 
 - **4× Upscaling** — Enhance images to 4x their original resolution using Real-ESRGAN
 - **Privacy-First** — No logging, no storage, automatic memory purge
@@ -20,7 +20,7 @@
 - **Multiple Formats** — Export as PNG, JPEG, or WebP
 - **Free Hosting** — Deployed on HuggingFace Spaces (CPU Basic, free tier)
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌──────────────────────┐  nginx proxy  ┌──────────────────────┐
@@ -34,7 +34,7 @@
 
 The frontend proxies all `/api/*` requests through nginx to the backend's `/gradio_api/*` endpoints — no CORS needed.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Local Development
 
@@ -83,7 +83,7 @@ Both Spaces are deployed via **direct git push** to their HF repos:
 
 > **Note:** The CI/CD workflow in `.github/workflows/deploy.yml` can also deploy via `HF_TOKEN` secret on push to main.
 
-## ⚡ Performance Optimizations
+## Performance Optimizations
 
 | Optimization | Description |
 |--------------|-------------|
@@ -93,7 +93,7 @@ Both Spaces are deployed via **direct git push** to their HF repos:
 | **Inference Mode** | `torch.inference_mode()` for ~5-10% faster processing |
 | **FP16 on CUDA** | Half-precision on GPU for 2x memory savings |
 
-## 🔒 Privacy Features
+## Privacy Features
 
 | Feature | Implementation |
 |---------|---------------|
@@ -101,7 +101,7 @@ Both Spaces are deployed via **direct git push** to their HF repos:
 | **Memory Purge** | `gc.collect()` after every inference |
 | **No Logging** | Logging disabled, no print statements for images |
 
-## 🎨 Design System
+## Design System
 
 **Peacock Watercolor Glass** aesthetic:
 - Peacock palette (teal, emerald, indigo, gold)
@@ -110,7 +110,7 @@ Both Spaces are deployed via **direct git push** to their HF repos:
 - Sora headings + Manrope body text
 - Micro‑refraction noise + slow sheen drift
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 4xl/
@@ -137,7 +137,7 @@ Both Spaces are deployed via **direct git push** to their HF repos:
 └── README.md
 ```
 
-## 🔧 Tech Stack
+## Tech Stack
 
 | Layer | Technology | Version |
 |-------|-----------|---------|
@@ -150,7 +150,7 @@ Both Spaces are deployed via **direct git push** to their HF repos:
 | Proxy | nginx | alpine |
 | Hosting | HuggingFace Spaces | CPU Basic (free) |
 
-## 📊 Specifications
+## Specifications
 
 | Parameter | Value |
 |-----------|-------|
@@ -162,7 +162,7 @@ Both Spaces are deployed via **direct git push** to their HF repos:
 | API Prefix | `/gradio_api/` (Gradio 5.x) |
 | Frontend Proxy | `/api/*` → `/gradio_api/*` via nginx |
 
-## 📄 License
+## License
 
 MIT License — See [LICENSE](LICENSE) for details.
 
