@@ -34,11 +34,18 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* Watercolor background layers */}
+      <div className="watercolor-bg" aria-hidden="true">
+        <div className="peacock-plume" />
+        <div className="watercolor-layer layer-1" />
+        <div className="watercolor-layer layer-2" />
+        <div className="watercolor-layer layer-3" />
+        <div className="glassy-sheen" />
+        <div className="micro-refraction" />
+      </div>
+
       {/* Film grain overlay */}
       <div className="film-grain" aria-hidden="true" />
-      
-      {/* Background ambient glow */}
-      <div className="ambient-glow" aria-hidden="true" />
 
       <main className="main-content">
         {/* Header */}
@@ -47,7 +54,6 @@ function App() {
             <span className="logo-4">4</span>
             <span className="logo-xl">XL</span>
           </h1>
-          <p className="tagline">Privacy-first neural upscaling</p>
         </header>
 
         {/* Main interface */}

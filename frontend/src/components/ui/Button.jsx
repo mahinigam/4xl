@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef } from 'react'
 
 function Button({ 
   children, 
@@ -9,11 +9,33 @@ function Button({
   className = '',
   ...props 
 }) {
+  const btnRef = useRef(null)
+
+  const handleClick = (event) => {
+    if (disabled || loading) return
+
+    const btn = btnRef.current
+    if (btn) {
+      const ripple = document.createElement('span')
+      ripple.className = 'btn-ripple'
+
+      const rect = btn.getBoundingClientRect()
+      ripple.style.left = `${event.clientX - rect.left}px`
+      ripple.style.top = `${event.clientY - rect.top}px`
+
+      btn.appendChild(ripple)
+      ripple.addEventListener('animationend', () => ripple.remove())
+    }
+
+    if (onClick) onClick(event)
+  }
+
   return (
     <button
+      ref={btnRef}
       className={`btn btn-${variant} ${loading ? 'loading' : ''} ${className}`}
       disabled={disabled || loading}
-      onClick={onClick}
+      onClick={handleClick}
       {...props}
     >
       {loading && (
