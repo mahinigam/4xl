@@ -81,15 +81,16 @@ export function useUpscaler() {
   const [mode, setMode] = useState('server')          // active processing mode
   const [progress, setProgress] = useState(null)       // { stage, message, progress?, provider? }
   const [localSupported, setLocalSupported] = useState(false)
+  const [provider, setProvider] = useState(null)       // 'webgpu' | 'wasm' | null
 
   // Track whether a local-capable environment was detected
   const checkedRef = useRef(false)
   useEffect(() => {
     if (checkedRef.current) return
     checkedRef.current = true
-    // Local mode is always possible (WASM fallback), but we prefer WebGPU
     hasWebGPU().then((gpu) => {
       setLocalSupported(true) // WASM always available
+      setProvider(gpu ? 'webgpu' : 'wasm')
       if (gpu) setMode('local') // auto-prefer local when GPU exists
     })
   }, [])
@@ -179,5 +180,6 @@ export function useUpscaler() {
     toggleMode,
     progress,
     localSupported,
+    provider,
   }
 }

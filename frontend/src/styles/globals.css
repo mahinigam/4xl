@@ -722,6 +722,35 @@ body {
   white-space: nowrap;
 }
 
+.provider-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.provider-badge.webgpu {
+  background: rgba(47, 143, 107, 0.25);
+  color: var(--peacock-emerald);
+  border: 1px solid rgba(47, 143, 107, 0.4);
+}
+
+.provider-badge.wasm {
+  background: rgba(218, 165, 32, 0.2);
+  color: #daa520;
+  border: 1px solid rgba(218, 165, 32, 0.35);
+}
+
+.provider-badge.cloud {
+  background: rgba(90, 175, 184, 0.2);
+  color: var(--peacock-turquoise);
+  border: 1px solid rgba(90, 175, 184, 0.35);
+}
+
 /* Progress Bar */
 .progress-bar-container {
   width: 100%;

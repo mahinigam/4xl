@@ -13,7 +13,7 @@ function App() {
   const [model, setModel] = useState('RealESRGAN_x4plus')
   const [format, setFormat] = useState('png')
   
-  const { upscale, result, isLoading, error, reset, mode, toggleMode, progress } = useUpscaler()
+  const { upscale, result, isLoading, error, reset, mode, toggleMode, progress, provider } = useUpscaler()
 
   const handleImageSelect = useCallback((file) => {
     setInputImage(file)
@@ -100,12 +100,17 @@ function App() {
                 onClick={toggleMode}
                 disabled={isLoading}
                 title={mode === 'local'
-                  ? 'Running on your device (WebGPU/WASM)'
+                  ? `Running on your device (${provider === 'webgpu' ? 'WebGPU' : 'WASM'})`
                   : 'Running on remote server'}
               >
                 <span className="mode-indicator" />
                 <span className="mode-label">
                   {mode === 'local' ? 'Your Device' : 'Server'}
+                </span>
+                <span className={`provider-badge ${mode === 'local' ? provider : 'cloud'}`}>
+                  {mode === 'local'
+                    ? (provider === 'webgpu' ? 'GPU' : 'CPU')
+                    : 'Cloud'}
                 </span>
               </button>
             </div>
