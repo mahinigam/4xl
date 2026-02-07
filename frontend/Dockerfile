@@ -17,8 +17,8 @@ RUN npm ci --only=production=false
 # Copy source code
 COPY . .
 
-# Set production API URL (replace with your actual backend Space URL)
-ENV VITE_API_URL=https://mahinigam-4xl-api.hf.space
+# API calls go to /api (nginx proxies to backend's /gradio_api)
+ENV VITE_API_URL=/api
 
 # Build the application
 RUN npm run build

@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7860'
+// In production: /api → proxied through nginx to backend's /gradio_api/
+// In local dev: http://localhost:7860/gradio_api (direct to Gradio 5.x backend)
+const API_URL = import.meta.env.VITE_API_URL || '/api'
 
 export function useUpscaler() {
   const [result, setResult] = useState(null)
