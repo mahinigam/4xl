@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "4XL - Privacy-first image upscaler",
+  "description": "4xl",
   "author": "mahinigam",
   "license": "MIT",
   "scripts": {
