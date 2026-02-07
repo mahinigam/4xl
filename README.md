@@ -1,4 +1,4 @@
-# 4XL — Privacy-First Neural Image Upscaler
+# 4XL — Privacy-First Image Upscaler
 
 <p align="center">
   <a href="https://huggingface.co/spaces/mahinigam/4xl"><img src="https://img.shields.io/badge/Live%20Demo-4XL-yellow?style=flat-square" alt="Live Demo" /></a>
