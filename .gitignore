@@ -57,3 +57,4 @@ htmlcov/
 # Misc
 *.bak
 *.orig
+*.bfg-report/
