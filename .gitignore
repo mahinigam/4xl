@@ -9,7 +9,6 @@ __pycache__/
 .pyo
 .pyd
 *.egg-info/
-dist/
 build/
 *.egg
 
@@ -35,10 +34,14 @@ Thumbs.db
 frontend/dist/
 *.log
 
+# Vite cache
+.vite/
+
 # Model weights (downloaded at runtime)
 *.pth
 *.pt
 *.onnx
+*.wasm
 
 # Temporary files
 tmp/
@@ -53,6 +56,9 @@ htmlcov/
 # HF Space clones (deploy targets, not source)
 4xl-api/
 4xl-frontend/
+
+# Antigravity / Agent config
+.agents/
 
 # Misc
 *.bak

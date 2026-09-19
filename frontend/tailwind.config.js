@@ -7,23 +7,28 @@ export default {
   theme: {
     extend: {
       colors: {
-        obsidian: {
-          DEFAULT: '#0D0D0F',
-          light: '#141417',
-          lighter: '#1a1a1e',
+        platinum: {
+          DEFAULT: '#D8DCE0',
+          light: '#E2E5E8',
+          lighter: '#F0F2F4',
+          surface: '#FFFFFF',
         },
-        navy: {
-          DEFAULT: '#1E3A5F',
-          accent: '#2A4A73',
-          glow: 'rgba(30, 58, 95, 0.15)',
+        graphite: {
+          DEFAULT: '#7B828A',
+          dark: '#3A4048',
+          deep: '#5B6168',
+          border: '#4F555C',
+        },
+        mac: {
+          accent: '#385A94',
+          alert: '#B23A3A',
+          desktop: '#6E716C',
         },
       },
       fontFamily: {
-        heading: ['Space Grotesk', 'sans-serif'],
+        ui: ['Work Sans', 'sans-serif'],
+        code: ['VT323', 'monospace'],
         body: ['Inter', 'sans-serif'],
-      },
-      backdropBlur: {
-        glass: '20px',
       },
     },
   },

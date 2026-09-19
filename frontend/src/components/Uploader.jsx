@@ -74,14 +74,15 @@ function Uploader({ onImageSelect, preview, disabled }) {
       ) : (
         <div className="upload-prompt">
           <div className="upload-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M12 16V4m0 0L8 8m4-4l4 4" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M3 15v4a2 2 0 002 2h14a2 2 0 002-2v-4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <span className="material-symbols-outlined">cloud_upload</span>
           </div>
-          <p className="upload-text">Drop image here</p>
-          <p className="upload-subtext">or click to browse</p>
-          <p className="upload-formats">JPG, PNG, WebP</p>
+          <p className="upload-text">Drag Image Here</p>
+          <p className="upload-subtext">or click to browse local volume</p>
+          <div className="upload-formats">
+            <span className="upload-format-badge">JPG</span>
+            <span className="upload-format-badge">PNG</span>
+            <span className="upload-format-badge">WebP</span>
+          </div>
         </div>
       )}
     </div>
