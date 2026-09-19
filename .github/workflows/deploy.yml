@@ -72,9 +72,19 @@ jobs:
             --exclude '.env' \
             frontend/ /tmp/hf-frontend/
           
+          # Fix: Remove dist from the HF repository if it was accidentally tracked in the past
+          # (HF rejects >10MB files, and Docker builds the frontend anyway)
+          rm -rf /tmp/hf-frontend/dist
+          
+          # Fix: Copy the root .gitignore to the HF space so it ignores properly
+          cp .gitignore /tmp/hf-frontend/.gitignore
+          
           cd /tmp/hf-frontend
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
+          
+          # Explicitly remove dist from git cache just in case
+          git rm -rf --cached dist || true
           
           # Only push if there are actual changes
           if git diff --quiet && git diff --cached --quiet; then
