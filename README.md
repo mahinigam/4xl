@@ -128,12 +128,12 @@ Both Spaces are deployed via **direct git push** to their HF repos:
 
 ## Design System
 
-**Peacock Watercolor Glass** aesthetic:
-- Peacock palette (teal, emerald, indigo, gold)
-- Watercolor wash layers with plume watermark (7% opacity)
-- Glassmorphism panels with animated gradient borders
-- Sora headings + Manrope body text
-- Micro‑refraction noise + slow sheen drift
+**Classic Macintosh 1-Bit Platinum** aesthetic:
+- Retro Macintosh System 6/7 Platinum styling
+- Pixel-perfect bevels, pinstripe titlebars, and hard 1-bit shadows
+- Dense, tactile, workstation interface with solid desktop gray
+- VT323 monospace (chrome) + Work Sans (headings) + Material Symbols
+- Barber-stripe progress bars and beveled push buttons
 
 ## Project Structure
 

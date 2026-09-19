@@ -18,10 +18,6 @@ jobs:
   # Deploy Backend (Gradio API)
   deploy-backend:
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      contains(join(github.event.commits.*.modified, ','), 'backend/') ||
-      contains(join(github.event.commits.*.added, ','), 'backend/')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -55,10 +51,6 @@ jobs:
   # Deploy Frontend (React + Docker)
   deploy-frontend:
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      contains(join(github.event.commits.*.modified, ','), 'frontend/') ||
-      contains(join(github.event.commits.*.added, ','), 'frontend/')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
