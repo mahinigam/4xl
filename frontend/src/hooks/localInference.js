@@ -12,7 +12,7 @@ import * as ort from 'onnxruntime-web'
 // Constants
 // ---------------------------------------------------------------------------
 const MODEL_BASE_URL =
-  'https://huggingface.co/spaces/mahinigam/4xl-api/resolve/main/models'
+  'https://huggingface.co/mahinigam/4xl-models/resolve/main'
 
 const MODEL_FILES = {
   RealESRGAN_x4plus: 'RealESRGAN_x4plus.onnx',
@@ -117,7 +117,7 @@ async function getSession(modelName, onProgress) {
     // Download with progress
     onProgress?.({ stage: 'downloading', message: 'Downloading model...', progress: 0 })
     const response = await fetch(url)
-    if (!response.ok) throw new Error(`Failed to download model: HTTP ${response.status}`)
+    if (!response.ok) throw new Error(`Failed to download AI model from CDN (HTTP ${response.status})`)
 
     const contentLength = +response.headers.get('Content-Length') || 0
     const reader = response.body.getReader()

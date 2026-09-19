@@ -130,7 +130,11 @@ export function useUpscaler() {
       // If local fails, auto-fallback to server
       if (tryLocal) {
         console.warn('Local inference failed, falling back to server:', err.message)
-        setProgress({ stage: 'processing', message: 'Local processing failed — using server...' })
+        let fallbackMsg = 'Local processing failed — using server...'
+        if (err.message.includes('download AI model from CDN')) {
+          fallbackMsg = 'Could not download AI model — using server fallback...'
+        }
+        setProgress({ stage: 'processing', message: fallbackMsg })
         try {
           const dataUri = await upscaleServer(imageFile, modelName, outputFormat)
           setResult(dataUri)
@@ -138,7 +142,7 @@ export function useUpscaler() {
           return
         } catch (serverErr) {
           console.error('Server fallback also failed:', serverErr)
-          setError('Both local and server processing failed. Please try again.')
+          setError('Failed to process image. Both local and server engines are currently unavailable.')
           setProgress(null)
           return
         }
